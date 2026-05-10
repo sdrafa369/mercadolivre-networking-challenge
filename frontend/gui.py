@@ -29,14 +29,14 @@ def executar_validacao():
 
 janela = tk.Tk()
 
-janela.title("Mercado Livre - Network Automation")
+janela.title("Network Automation")
 
 janela.geometry("400x300")
 
 
 titulo = tk.Label(
     janela,
-    text="Automação de Rede",
+    text="Automação de Ativos Rede",
     font=("Arial", 18)
 )
 
