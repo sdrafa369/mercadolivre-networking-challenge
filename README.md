@@ -19,12 +19,14 @@ O projeto realiza automação de dispositivos Cisco utilizando Python, Netmiko e
 
 # Funcionalidades
 
-* Configuração automatizada de VLANs
-* Alteração automática de hostname
-* Salvamento de configuração na NVRAM
+* Configuração dinâmica de VLANs
+* Configuração dinâmica de gateways
+* Alteração dinâmica de hostname
+* Salvamento automático na NVRAM
 * Backup automático da running-config
-* Validação de configuração
-* Interface gráfica para operação
+* Validação de configurações aplicadas
+* Interface gráfica utilizando Tkinter
+* Automação via SSH utilizando Netmiko
 
 ---
 
@@ -95,36 +97,18 @@ python -m frontend.gui
 
 # Funcionalidades da Interface
 
-A interface gráfica possui os seguintes botões:
+A interface permite ao usuário informar dinamicamente:
 
-* Configurar Switch
-* Realizar Backup
-* Validar Configuração
+* Hostname do dispositivo
+* VLAN ID
+* Nome da VLAN
+* Gateway/IP da VLAN
 
----
+Além disso, possui funcionalidades para:
 
-# Evidências
-
-## Frontend
-
-Adicionar screenshots da interface gráfica.
-
-## Configuração Cisco
-
-Adicionar screenshots dos comandos:
-
-```cisco
-show running-config
-show ip interface brief
-```
-
-## Backup
-
-Adicionar exemplo de arquivo salvo na pasta backups/.
-
-## Validação
-
-Adicionar screenshot mostrando a validação das configurações.
+* Aplicar configurações
+* Realizar backup
+* Validar configurações
 
 ---
 
