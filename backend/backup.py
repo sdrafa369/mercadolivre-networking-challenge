@@ -1,36 +1,33 @@
 from netmiko import ConnectHandler
 from datetime import datetime
 
-device = {
-    "device_type": "cisco_ios",
-    "host": "192.168.1.100",
-    "username": "admin",
-    "password": "admin123",
-}
+def realizar_backup():
 
-try:
-    connection = ConnectHandler(**device)
+    device = {
+        "device_type": "cisco_ios",
+        "host": "192.168.1.100",
+        "username": "admin",
+        "password": "admin123",
+    }
 
-    print("Conectado ao dispositivo!\n")
+    try:
 
-    running_config = connection.send_command("show running-config")
+        connection = ConnectHandler(**device)
 
-    hostname = connection.find_prompt().replace("#", "")
+        running_config = connection.send_command("show running-config")
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        hostname = connection.find_prompt().replace("#", "")
 
-    filename = f"backups/{hostname}_{timestamp}.txt"
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    with open(filename, "w") as backup_file:
-        backup_file.write(running_config)
+        filename = f"backups/{hostname}_{timestamp}.txt"
 
-    print("=" * 50)
-    print("BACKUP REALIZADO COM SUCESSO")
-    print("=" * 50)
+        with open(filename, "w") as backup_file:
+            backup_file.write(running_config)
 
-    print(f"Arquivo salvo em: {filename}")
+        connection.disconnect()
 
-    connection.disconnect()
+        return f"Backup salvo em: {filename}"
 
-except Exception as e:
-    print(f"Erro: {e}")
+    except Exception as e:
+        return f"Erro: {e}"

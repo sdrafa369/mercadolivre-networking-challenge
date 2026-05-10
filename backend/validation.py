@@ -1,37 +1,40 @@
 from netmiko import ConnectHandler
 
-device = {
-    "device_type": "cisco_ios",
-    "host": "192.168.1.100",
-    "username": "admin",
-    "password": "admin123",
-}
+def validar_configuracao():
 
-try:
-    connection = ConnectHandler(**device)
-
-    print("=" * 50)
-    print("VALIDANDO CONFIGURAÇÕES...")
-    print("=" * 50)
-
-    running_config = connection.send_command("show running-config")
-
-    validations = {
-        "Hostname": "hostname SWITCH_AUTOMATIZADO",
-        "VLAN 10": "interface GigabitEthernet1.10",
-        "VLAN 20": "interface GigabitEthernet1.20",
-        "VLAN 50": "interface GigabitEthernet1.50",
+    device = {
+        "device_type": "cisco_ios",
+        "host": "192.168.1.100",
+        "username": "admin",
+        "password": "admin123",
     }
 
-    for item, command in validations.items():
+    try:
 
-        if command in running_config:
-            print(f"[OK] {item} configurado corretamente.")
+        connection = ConnectHandler(**device)
 
-        else:
-            print(f"[ERRO] {item} NÃO encontrado.")
+        running_config = connection.send_command("show running-config")
 
-    connection.disconnect()
+        validations = {
+            "Hostname": "hostname SWITCH_AUTOMATIZADO",
+            "VLAN 10": "interface GigabitEthernet1.10",
+            "VLAN 20": "interface GigabitEthernet1.20",
+            "VLAN 50": "interface GigabitEthernet1.50",
+        }
 
-except Exception as e:
-    print(f"Erro: {e}")
+        result = ""
+
+        for item, command in validations.items():
+
+            if command in running_config:
+                result += f"[OK] {item}\n"
+
+            else:
+                result += f"[ERRO] {item}\n"
+
+        connection.disconnect()
+
+        return result
+
+    except Exception as e:
+        return f"Erro: {e}"
