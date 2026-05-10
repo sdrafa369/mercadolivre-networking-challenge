@@ -1,14 +1,16 @@
 # Mercado Livre - Networking
 
-Laboratório de Candidatos Networking Mercado Livre 
+Laboratório Networking Mercado Livre 
 
-Projeto de automação Cisco utilizando Python, Netmiko e Tkinter.
+Projeto de automação Cisco utilizando PnetLab, Python, Netmiko e Tkinter.
 
 ## Tecnologias
+- PNETLAB
 - Python
 - Netmiko
 - Tkinter
 - Cisco IOS
+- GitHub Desktop
 
 ## Objetivo
 Automatizar:
