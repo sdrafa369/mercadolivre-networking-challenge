@@ -7,6 +7,8 @@ def configurar_switch():
         "host": "192.168.1.100",
         "username": "admin",
         "password": "admin123",
+        "fast_cli": False,
+         "session_log": "netmiko.log",
     }
 
     commands = [
@@ -28,6 +30,7 @@ def configurar_switch():
         "ip address 192.168.50.1 255.255.255.0",
         "description VLAN_SEGURANCA",
         "no shutdown",
+        "wr",
     ]
 
     try:
