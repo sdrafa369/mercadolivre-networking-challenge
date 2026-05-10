@@ -10,8 +10,6 @@ device = {
 
 commands = [
 
-    "hostname SWITCH_AUTOMATIZADO",
-
     "interface GigabitEthernet1.10",
     "encapsulation dot1Q 10",
     "ip address 192.168.10.1 255.255.255.0",
@@ -29,6 +27,8 @@ commands = [
     "ip address 192.168.50.1 255.255.255.0",
     "description VLAN_SEGURANCA",
     "no shutdown",
+
+    "hostname SWITCH_AUTOMATIZADO",
 ]
 
 try:
