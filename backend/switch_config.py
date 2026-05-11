@@ -45,12 +45,17 @@ def configurar_switch(
         f"ip address {vlan3_ip} 255.255.255.0",
         f"description {vlan3_nome}",
         "no shutdown",
+        
     ]
 
     try:
 
         connection = ConnectHandler(**device)
-
+        
+        print("=" * 50)
+        print("APLICANDO CONFIGURAÇÕES...")
+        print("=" * 50)
+        
         output = connection.send_config_set(commands)
 
         print(output)
@@ -63,7 +68,11 @@ def configurar_switch(
 
         connection.disconnect()
 
-        return "Configuração aplicada com sucesso!"
+        return (
+        "Configuração aplicada com sucesso!\n"
+        "Hostname alterado.\n"
+        "Configuração salva na NVRAM."
+        )
 
     except Exception as e:
         return f"Erro: {e}"
