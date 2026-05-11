@@ -1,0 +1,100 @@
+FORTIGATE
+
+config vpn ipsec phase1-interface
+    edit "VPN-PALOALTO"
+        set interface "port1"
+        set ike-version 2
+        set peertype any
+        set net-device enable
+        set proposal des-sha256
+        set dhgrp 14
+        set remote-gw 192.168.1.200
+        set psksecret SenhaVPN@2026
+    next
+end
+
+config vpn ipsec phase2-interface
+    edit "VPN-PALOALTO-P2"
+        set phase1name "VPN-PALOALTO"
+        set proposal des-sha256
+        set dhgrp 14
+        set src-subnet 192.168.10.0 255.255.255.0
+        set dst-subnet 192.168.20.0 255.255.255.0
+    next
+end
+
+PALOALTO
+
+Transformar a interface WAN em Layer3.
+
+Configurar ethernet1/1
+set network interface ethernet ethernet1/1 layer3 ip 192.168.1.200/24
+
+Associar à virtual router
+set network virtual-router default interface ethernet1/1
+
+Associar zona
+set zone WAN network layer3 ethernet1/1
+
+Commit
+
+commit
+
+
+Estrutura correta no Palo Alto
+1. Criar crypto profile IKE
+
+set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE dh-group group14
+set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE encryption aes-256-cbc
+set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE hash sha256
+set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE lifetime seconds 28800
+
+2. Criar IPSec crypto profile
+
+set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE esp authentication sha256
+set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE esp encryption aes-256-cbc
+set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE dh-group group14
+set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE lifetime seconds 3600
+
+3. Criar tunnel interface
+
+set network interface tunnel units tunnel.1 ip 169.255.1.2/30
+set network interface tunnel units tunnel.1 mtu 1427
+set network interface tunnel units tunnel.1 comment VPN-FORTIGATE
+
+4. Associar zona
+
+set zone VPN network layer3 tunnel.1
+
+5. Criar IKE Gateway COMPLETO
+
+set network ike gateway VPN-FORTIGATE authentication pre-shared-key key SenhaVPN@2026
+set network ike gateway VPN-FORTIGATE protocol ikev2
+set network ike gateway VPN-FORTIGATE peer-address ip 192.168.1.100
+set network ike gateway VPN-FORTIGATE local-address interface ethernet1/1
+set network ike gateway VPN-FORTIGATE protocol ikev2 ike-crypto-profile IKE-PROFILE
+
+6. Criar IPSec Tunnel COMPLETO
+
+set network tunnel ipsec VPN-FORTIGATE auto-key ike-gateway VPN-FORTIGATE
+set network tunnel ipsec VPN-FORTIGATE auto-key ipsec-crypto-profile IPSEC-PROFILE
+set network tunnel ipsec VPN-FORTIGATE tunnel-interface tunnel.1
+
+7. Criar Proxy IDs (MUITO IMPORTANTE)
+
+set network tunnel ipsec VPN-FORTIGATE auto-key proxy-id FGT-PROXY local 192.168.20.0/24
+set network tunnel ipsec VPN-FORTIGATE auto-key proxy-id FGT-PROXY remote 192.168.10.0/24
+set network tunnel ipsec VPN-FORTIGATE auto-key proxy-id FGT-PROXY protocol any
+
+8. Rotas
+
+set network virtual-router default routing-table ip static-route TO-FORTIGATE destination 192.168.10.0/24 interface tunnel.1
+
+9. Policies
+
+set rulebase security rules VPN-OUT from LAN to VPN source any destination any application any service any action allow
+set rulebase security rules VPN-IN from VPN to LAN source any destination any application any service any action allow
+
+10. Commit
+
+commit
