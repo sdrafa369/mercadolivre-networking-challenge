@@ -91,6 +91,11 @@ Apesar disso, toda a estrutura da VPN foi configurada e validada:
 
 O troubleshooting realizado demonstrou o processo de diagnóstico e validação de interoperabilidade IPSec entre dispositivos de diferentes fabricantes.
 
+Houve também diversas dificuldades com o laboratório devido ao pouco recurso que possuo de hardware.
+
+* Pouca memória disponível no notebook (vide o print);
+* Processador incapatível com algumas ferramentas.
+
 ---
 
 # Scripts Incluídos
