@@ -25,76 +25,146 @@ end
 
 ###### PALOALTO ######
 
-Transformar a interface WAN em Layer3.
+Configuração do Palo Alto
 
-Configurar ethernet1/1
+1. Interfaces
+
+WAN
 set network interface ethernet ethernet1/1 layer3 ip 192.168.1.200/24
+set network interface ethernet ethernet1/1 layer3 interface-management-profile Acesso
 
-Associar à virtual router
-set network virtual-router default interface ethernet1/1
-
-Associar zona
-set zone WAN network layer3 ethernet1/1
-
-Commit
-
-commit
-
-
-Estrutura correta no Palo Alto
-1. Criar crypto profile IKE
-
-set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE dh-group group14
-set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE encryption aes-256-cbc
-set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE hash sha256
-set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE lifetime seconds 28800
-
-2. Criar IPSec crypto profile
-
-set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE esp authentication sha256
-set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE esp encryption aes-256-cbc
-set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE dh-group group14
-set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE lifetime seconds 3600
-
-3. Criar tunnel interface
-
+LAN
+set network interface ethernet ethernet1/2 layer3 ip 192.168.80.1/24
+set network interface ethernet ethernet1/2 layer3 interface-management-profile Acesso
+Tunnel Interface
 set network interface tunnel units tunnel.1 ip 169.255.1.2/30
 set network interface tunnel units tunnel.1 mtu 1427
 set network interface tunnel units tunnel.1 comment VPN-FORTIGATE
 
-4. Associar zona
+2. Zones
 
+WAN
+set zone WAN network layer3 ethernet1/1
+
+LAN
+set zone LAN network layer3 ethernet1/2
+
+VPN
 set zone VPN network layer3 tunnel.1
 
-5. Criar IKE Gateway COMPLETO
+3. Perfil Criptográfico IKE
 
-set network ike gateway VPN-FORTIGATE authentication pre-shared-key key SenhaVPN@2026
-set network ike gateway VPN-FORTIGATE protocol ikev2
+IKE Phase1
+Parâmetros
+Item	Valor
+Encryption	DES
+Authentication	SHA256
+DH Group	14
+Lifetime	28800
+
+Configuração
+
+set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE encryption des
+set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE hash sha256
+set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE dh-group group14
+set network ike crypto-profiles ike-crypto-profiles IKE-PROFILE lifetime seconds 28800
+
+4. Perfil Criptográfico IPsec
+Phase2
+Parâmetros
+Item	Valor
+Encryption	DES
+Authentication	SHA256
+DH Group	14
+Lifetime	3600
+
+Configuração
+
+set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE esp encryption des
+set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE esp authentication sha256
+set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE dh-group group14
+set network ike crypto-profiles ipsec-crypto-profiles IPSEC-PROFILE lifetime seconds 3600
+
+5. IKE Gateway
+Parâmetros
+Item	Valor
+Peer IP	192.168.1.100
+Interface Local	ethernet1/1
+Exchange Mode	Main
+NAT Traversal	Enabled
+IKE Version	IKEv1
+Authentication	Pre-Shared Key
+
+Configuração
+set network ike gateway VPN-FORTIGATE authentication pre-shared-key key <PSK>
 set network ike gateway VPN-FORTIGATE peer-address ip 192.168.1.100
 set network ike gateway VPN-FORTIGATE local-address interface ethernet1/1
-set network ike gateway VPN-FORTIGATE protocol ikev2 ike-crypto-profile IKE-PROFILE
+set network ike gateway VPN-FORTIGATE protocol ikev1 ike-crypto-profile IKE-PROFILE
+set network ike gateway VPN-FORTIGATE protocol ikev1 exchange-mode main
+set network ike gateway VPN-FORTIGATE protocol-common nat-traversal enable yes
+set network ike gateway VPN-FORTIGATE protocol-common fragmentation enable no
+set network ike gateway VPN-FORTIGATE protocol ikev1 dpd enable no
 
-6. Criar IPSec Tunnel COMPLETO
+6. Tunnel IPsec
+Proxy-ID
+Local	Remote
+192.168.80.0/24	192.168.70.0/24
+Configuração
 
 set network tunnel ipsec VPN-FORTIGATE auto-key ike-gateway VPN-FORTIGATE
 set network tunnel ipsec VPN-FORTIGATE auto-key ipsec-crypto-profile IPSEC-PROFILE
-set network tunnel ipsec VPN-FORTIGATE tunnel-interface tunnel.1
-
-7. Criar Proxy IDs (MUITO IMPORTANTE)
-
-set network tunnel ipsec VPN-FORTIGATE auto-key proxy-id FGT-PROXY local 192.168.20.0/24
-set network tunnel ipsec VPN-FORTIGATE auto-key proxy-id FGT-PROXY remote 192.168.10.0/24
 set network tunnel ipsec VPN-FORTIGATE auto-key proxy-id FGT-PROXY protocol any
+set network tunnel ipsec VPN-FORTIGATE auto-key proxy-id FGT-PROXY local 192.168.80.0/24
+set network tunnel ipsec VPN-FORTIGATE auto-key proxy-id FGT-PROXY remote 192.168.70.0/24
+set network tunnel ipsec VPN-FORTIGATE tunnel-interface tunnel.1
+set network tunnel ipsec VPN-FORTIGATE tunnel-monitor enable no
 
-8. Rotas
+7. Roteamento
+Rota Estática
+Destino	Next-Hop	Interface
+192.168.70.0/24	169.255.1.1	tunnel.1
 
-set network virtual-router default routing-table ip static-route TO-FORTIGATE destination 192.168.10.0/24 interface tunnel.1
+Configuração
 
-9. Policies
+set network virtual-router default routing-table ip static-route TO-FORTIGATE destination 192.168.70.0/24
+set network virtual-router default routing-table ip static-route TO-FORTIGATE interface tunnel.1
+set network virtual-router default routing-table ip static-route TO-FORTIGATE nexthop ip-address 169.255.1.1
+set network virtual-router default routing-table ip static-route TO-FORTIGATE metric 10
 
-set rulebase security rules VPN-OUT from LAN to VPN source any destination any application any service any action allow
-set rulebase security rules VPN-IN from VPN to LAN source any destination any application any service any action allow
+8. Policies de Segurança
 
-10. Commit
+LAN → VPN
+set rulebase security rules VPN-OUT from LAN
+set rulebase security rules VPN-OUT to VPN
+set rulebase security rules VPN-OUT source any
+set rulebase security rules VPN-OUT destination any
+set rulebase security rules VPN-OUT application any
+set rulebase security rules VPN-OUT service any
+set rulebase security rules VPN-OUT action allow
 
-commit
+VPN → LAN
+set rulebase security rules VPN-IN from VPN
+set rulebase security rules VPN-IN to LAN
+set rulebase security rules VPN-IN source any
+set rulebase security rules VPN-IN destination any
+set rulebase security rules VPN-IN application any
+set rulebase security rules VPN-IN service any
+set rulebase security rules VPN-IN action allow
+
+9. Validação
+Verificar IKE SA
+show vpn ike-sa
+Verificar IPsec SA
+show vpn ipsec-sa
+Testar Tunnel
+test vpn ipsec-sa tunnel VPN-FORTIGATE
+Verificar Rotas
+show routing route
+Status Final
+Item	Status
+IKE Phase1	UP
+IPsec Phase2	UP
+Proxy-ID	OK
+Roteamento	OK
+Policies	OK
+Comunicação entre redes	FUNCIONANDO
